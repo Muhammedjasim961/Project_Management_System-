@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Project extends Model
 {
-    // app/Models/Project.php
     protected $fillable = ['name', 'description', 'status', 'user_id'];
 
     public function user()

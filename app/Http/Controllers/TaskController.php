@@ -10,7 +10,9 @@ class TaskController extends Controller
 {
     public function index($projectId)
     {
-        $project = Auth::user()->projects()->find($projectId);
+        $user = auth()->user();
+        $project = Project::where('id', $projectId)->where('user_id', $user->id)->first();
+
         if (!$project) {
             return response()->json(['message' => 'Project not found'], 404);
         }
@@ -70,25 +72,17 @@ class TaskController extends Controller
 
     public function updateStatus(Request $request, $projectId, $taskId)
     {
-        $project = Auth::user()->projects()->find($projectId);
-
-        if (!$project) {
-            return response()->json(['message' => 'Project not found'], 404);
-        }
-
-        $task = $project->tasks()->find($taskId);
+        $task = Task::where('id', $taskId)->where('project_id', $projectId)->first();
 
         if (!$task) {
             return response()->json(['message' => 'Task not found'], 404);
         }
 
-        // Validate incoming status
         $request->validate([
-            'status' => 'required|in:todo,in_progress,completed',
+            'status' => 'required|string'
         ]);
 
-        // Update the task's status
-        $task->status = $request->input('status');
+        $task->status = $request->status;
         $task->save();
 
         return response()->json(['message' => 'Task status updated successfully', 'task' => $task]);
@@ -143,7 +137,7 @@ class TaskController extends Controller
             'tasks.remarks' => function ($query) {
                 $query->orderBy('created_at');
             },
-            'user:id,name'  // to show the creator
+            'user:id,name'
         ]);
 
         return response()->json([

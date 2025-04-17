@@ -2,23 +2,25 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Remark;  // Add this if it's not already imported
 use Illuminate\Http\Request;
 
 class TaskRemarkController extends Controller
 {
-    public function destroy(Project $project, Task $task, TaskRemark $remark)
+    public function destroy($projectId, $taskId, $remarkId)
     {
-        // Check if the task belongs to the project
-        if ($task->project_id !== $project->id) {
-            return response()->json(['message' => 'Task does not belong to project'], 404);
+        $remark = Remark::where('id', $remarkId)
+            ->where('task_id', $taskId)
+            ->first();
+
+        if (!$remark) {
+            return response()->json(['message' => 'Remark not found'], 404);
         }
 
-        // Check if the remark belongs to the task
-        if ($remark->task_id !== $task->id) {
-            return response()->json(['message' => 'Remark does not belong to task'], 404);
+        if ($remark->task_id != $taskId) {
+            return response()->json(['message' => 'Invalid remark for the specified task'], 400);
         }
 
-        // Delete the remark
         $remark->delete();
 
         return response()->json(['message' => 'Remark deleted successfully']);

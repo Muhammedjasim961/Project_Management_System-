@@ -5,8 +5,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
-    // Example migration for projects table
-
     public function up()
     {
         Schema::create('projects', function (Blueprint $table) {

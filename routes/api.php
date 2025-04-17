@@ -5,6 +5,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\RemarkController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TaskRemarkController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -14,16 +15,13 @@ Route::middleware('auth:api')->group(function () {
     // Projects routes
     Route::apiResource('projects', ProjectController::class);
 
-    // Project report route
     Route::get('projects/{project}/report', [ReportController::class, 'projectReport']);
 
-    // Tasks routes for a specific project
     Route::prefix('projects/{project}')->group(function () {
         Route::get('tasks', [TaskController::class, 'index']);
         Route::post('tasks', [TaskController::class, 'store']);
     });
 
-    // Logout route
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 Route::get('projects/{project}/tasks', [TaskController::class, 'index']);
@@ -46,3 +44,5 @@ Route::middleware('auth:api')->get('/projects/{project}/report', [ProjectControl
 Route::middleware('auth:api')->group(function () {
     Route::delete('projects/{project}/tasks/{task}/remarks/{remark}', [TaskRemarkController::class, 'destroy']);
 });
+Route::middleware('auth:api')->get('/projects/{project}/tasks', [TaskController::class, 'index']);
+Route::delete('/projects/{projectId}/tasks/{taskId}/remarks/{remarkId}', [TaskRemarkController::class, 'destroy']);

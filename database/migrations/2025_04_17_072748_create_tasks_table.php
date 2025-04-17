@@ -6,8 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 class CreateTasksTable extends Migration
 {
-    // database/migrations/xxxx_xx_xx_create_tasks_table.php
-
     public function up()
     {
         Schema::create('tasks', function (Blueprint $table) {

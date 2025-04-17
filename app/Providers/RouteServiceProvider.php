@@ -19,10 +19,10 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        parent::boot();
+        // parent::boot();
 
-        Route::bind('remark', function ($value) {
-            return \App\Models\TaskRemark::findOrFail($value);
-        });
+        // Route::bind('remark', function ($value) {
+        //     return \App\Models\TaskRemark::findOrFail($value);
+        // });
     }
 }

@@ -25,7 +25,7 @@ class ProjectController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'status' => $request->status,
-            'user_id' => auth()->id(),  // ← this will only work if authenticated
+            'user_id' => auth()->id(),
         ]);
 
         return response()->json($project, 201);

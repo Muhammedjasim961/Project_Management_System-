@@ -15,10 +15,8 @@ class AuthController extends Controller
         $validated = $request->validate([
             'title' => 'required|string',
             'description' => 'nullable|string',
-            // any other fields
         ]);
 
-        // Create record
         $project = Project::create($validated);
 
         return response()->json([
@@ -28,7 +26,6 @@ class AuthController extends Controller
         ], 201);
     }
 
-    // Register user
     public function register(Request $request)
     {
         $validated = $request->validate([
@@ -51,7 +48,6 @@ class AuthController extends Controller
         ]);
     }
 
-    // Login user
     public function login(Request $request)
     {
         $validated = $request->validate([
@@ -71,7 +67,6 @@ class AuthController extends Controller
         ]);
     }
 
-    // Logout user (invalidate token)
     public function logout()
     {
         JWTAuth::invalidate(JWTAuth::getToken());
