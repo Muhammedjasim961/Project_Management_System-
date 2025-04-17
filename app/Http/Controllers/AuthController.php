@@ -9,6 +9,25 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
+    public function store(Request $request)
+    {
+        // Validate input
+        $validated = $request->validate([
+            'title' => 'required|string',
+            'description' => 'nullable|string',
+            // any other fields
+        ]);
+
+        // Create record
+        $project = Project::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Project created successfully',
+            'data' => $project
+        ], 201);
+    }
+
     // Register user
     public function register(Request $request)
     {

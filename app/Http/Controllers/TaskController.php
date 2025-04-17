@@ -8,39 +8,146 @@ use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller
 {
-    // Store a new task
+    public function index($projectId)
+    {
+        $project = Auth::user()->projects()->find($projectId);
+        if (!$project) {
+            return response()->json(['message' => 'Project not found'], 404);
+        }
+
+        return response()->json($project->tasks);
+    }
+
     public function store(Request $request, $projectId)
     {
+        \Log::info('Authenticated User ID: ' . Auth::id());
+        \Log::info('Trying to access Project ID: ' . $projectId);
+
+        $project = Auth::user()->projects()->find($projectId);
+        if (!$project) {
+            \Log::warning('Project not found for user.');
+            return response()->json(['message' => 'Project not found'], 404);
+        }
+
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'title' => 'required|string|max:255',
             'description' => 'nullable|string',
         ]);
 
-        $project = Auth::user()->projects()->findOrFail($projectId);
-
-        $task = $project->tasks()->create($validated);
-
-        return response()->json([
-            'message' => 'Task created successfully',
-            'task' => $task,
-        ], 201);
-    }
-
-    // Update task status
-    public function updateStatus(Request $request, $taskId)
-    {
-        $task = Auth::user()->tasks()->findOrFail($taskId);
-
-        $validated = $request->validate([
-            'status' => 'required|in:pending,in_progress,completed',
-            'remarks' => 'nullable|string',
+        $task = $project->tasks()->create([
+            'title' => $validated['title'],
+            'description' => $validated['description'] ?? null,
+            'status' => 'pending',
         ]);
 
-        $task->update($validated);
+        return response()->json($task, 201);
+    }
+
+    public function show($projectId, $taskId)
+    {
+        $project = Auth::user()->projects()->find($projectId);
+
+        if (!$project)
+            return response()->json(['message' => 'Project not found'], 404);
+
+        $task = $project->tasks()->find($taskId);
+
+        if (!$task)
+            return response()->json(['message' => 'Task not found'], 404);
+
+        return response()->json($task);
+    }
+
+    public function getRemarks(Project $project, Task $task)
+    {
+        // Fetch remarks for the task
+        $remarks = $task->remarks;  // Assuming Task model has a relationship with Remark
 
         return response()->json([
-            'message' => 'Task status updated successfully',
-            'task' => $task,
+            'remarks' => $remarks
+        ]);
+    }
+
+    public function updateStatus(Request $request, $projectId, $taskId)
+    {
+        $project = Auth::user()->projects()->find($projectId);
+
+        if (!$project) {
+            return response()->json(['message' => 'Project not found'], 404);
+        }
+
+        $task = $project->tasks()->find($taskId);
+
+        if (!$task) {
+            return response()->json(['message' => 'Task not found'], 404);
+        }
+
+        // Validate incoming status
+        $request->validate([
+            'status' => 'required|in:todo,in_progress,completed',
+        ]);
+
+        // Update the task's status
+        $task->status = $request->input('status');
+        $task->save();
+
+        return response()->json(['message' => 'Task status updated successfully', 'task' => $task]);
+    }
+
+    public function destroy($projectId, $taskId)
+    {
+        $project = Auth::user()->projects()->find($projectId);
+        if (!$project)
+            return response()->json(['message' => 'Project not found'], 404);
+
+        $task = $project->tasks()->find($taskId);
+        if (!$task)
+            return response()->json(['message' => 'Task not found'], 404);
+
+        $task->delete();
+        return response()->json(['message' => 'Task deleted']);
+    }
+
+    public function addRemark(Request $request, $projectId, $taskId)
+    {
+        try {
+            $project = Auth::user()->projects()->find($projectId);
+            if (!$project) {
+                return response()->json(['message' => 'Project not found'], 404);
+            }
+
+            $task = $project->tasks()->find($taskId);
+            if (!$task) {
+                return response()->json(['message' => 'Task not found'], 404);
+            }
+
+            $validated = $request->validate([
+                'remark' => 'required|string',
+            ]);
+
+            $remark = $task->remarks()->create([
+                'remark' => $validated['remark'],
+                'user_id' => Auth::id(),
+            ]);
+
+            return response()->json($remark, 201);
+        } catch (\Exception $e) {
+            \Log::error('Remark Create Error: ' . $e->getMessage());
+            return response()->json(['message' => 'Server error'], 500);
+        }
+    }
+
+    public function report(Project $project)
+    {
+        $project->load([
+            'tasks.remarks' => function ($query) {
+                $query->orderBy('created_at');
+            },
+            'user:id,name'  // to show the creator
+        ]);
+
+        return response()->json([
+            'project' => $project
         ]);
     }
 }
